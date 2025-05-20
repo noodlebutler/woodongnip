@@ -1,22 +1,36 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <title>우동잎</title>
     <style>
-        .logo-img {
+        body {
+            background-color: #f0e1c6;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .logo {
             position: absolute;
             top: 20px;
-            right: 20px;
-            width: 100px;
-            height: auto;
-            pointer-events: none;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .brown {
+            color: #7b4b2a;
+        }
+
+        .green {
+            color: #4CAF50;
         }
 
         .search-wrapper {
             position: relative;
             width: 300px;
-            margin: 20px auto;
+            margin: 80px auto 20px;
         }
 
         .search-icon {
@@ -39,77 +53,70 @@
             outline: none;
         }
 
-        body {
-            background-color: #f0e1c6;
+        #container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            align-items: flex-start;
         }
 
+        #bookmarked-list {
+            width: 200px;
+            margin-right: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            height: 400px;
+            overflow-y: auto;
+        }
+
+            #bookmarked-list h3 {
+                margin-top: 0;
+                font-size: 18px;
+                color: #7b4b2a;
+            }
+
+        .bookmark-item {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+            .bookmark-item:hover {
+                background-color: #f2f2f2;
+            }
+
         #map {
-            width: 1000px;
+            width: 800px;
             height: 400px;
             border: 10px solid #7b4b2a;
             border-radius: 12px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-            margin: 20px auto;
-        }
-
-        .logo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            font-family: 'Arial', sans-serif;
-            z-index: 10;
-        }
-
-        .brown {
-            color: #7b4b2a;
-        }
-
-        .green {
-            color: #4CAF50;
+            margin-bottom: 20px;
         }
 
         .search-results {
+            width: 1000px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 30px;
-            width: 1000px;
+            margin: 10px auto;
         }
 
         .result-item {
             position: relative;
             width: 250px;
             margin: 10px;
-            padding: 20px;
+            padding: 15px;
             background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
         }
 
-            .result-item:hover {
-                transform: scale(1.05);
-                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-            }
-
-            .result-item img {
-                width: 100%;
-                height: 150px;
-                object-fit: cover;
-                border-radius: 10px;
-            }
-
             .result-item .place-name {
-                font-size: 18px;
                 font-weight: bold;
-                margin-top: 10px;
+                font-size: 16px;
                 color: #333;
             }
 
@@ -122,84 +129,59 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 20px;
+            font-size: 18px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .starred {
             color: #FFD700;
-            cursor: pointer;
         }
-
-            .star-btn:hover {
-                color: #FFA500;
-            }
-
-        .bookmarked-list {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 250px;
-            height: 400px;
-            overflow-y: auto;
-        }
-
-        .bookmark-item {
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border-bottom: 1px solid #ddd;
-        }
-
-            .bookmark-item:hover {
-                background-color: #f7f7f7;
-            }
     </style>
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=4a3fa299815ea563798ea9063008da9f&libraries=services"></script>
 </head>
 <body>
-    <img src="C:\Users\USER\Desktop\noodles_converted.jpg" class="logo-img" alt="로고">
+
+    <div class="logo">
+        <span class="brown">우리 동네 한 입</span>, <span class="green">우동잎🍃</span>
+    </div>
+
     <div class="search-wrapper">
         <span class="search-icon">🔍</span>
         <input type="text" class="search-box" id="search-input" placeholder="검색어를 입력하세요">
     </div>
-    <div class="logo">
-        <span class="brown">우리 동네 한 입</span>, <span class="green">우동잎🍃</span>
-    </div>
-    <br /><br />
-    <div id="map"></div>
 
-    <!-- 북마크 목록 -->
-    <div class="bookmarked-list" id="bookmarked-list">
-        <h3>북마크</h3>
+    <div id="container">
+        <div id="bookmarked-list">
+            <h3>⭐ 북마크</h3>
+        </div>
+        <div id="map"></div>
     </div>
 
     <div class="search-results" id="search-results"></div>
 
     <script>
-        var container = document.getElementById('map');
-        var options = {
+        const mapContainer = document.getElementById('map');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const bookmarkedList = document.getElementById('bookmarked-list');
+        const bookmarkedPlaces = [];
+
+        const map = new kakao.maps.Map(mapContainer, {
             center: new kakao.maps.LatLng(37.3004, 127.0340),
             level: 3
-        };
-        var map = new kakao.maps.Map(container, options);
-        var marker = new kakao.maps.Marker({
+        });
+
+        const marker = new kakao.maps.Marker({
             position: map.getCenter(),
             map: map
         });
 
-        kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
-            var clickPosition = mouseEvent.latLng;
-            marker.setPosition(clickPosition);
-        });
-
-        var ps = new kakao.maps.services.Places();
-        var searchInput = document.getElementById('search-input');
-        var searchResultsContainer = document.getElementById('search-results');
-        var bookmarkedListContainer = document.getElementById('bookmarked-list');
-        var bookmarkedPlaces = []; // 북마크된 장소들
+        const ps = new kakao.maps.services.Places();
 
         searchInput.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                var keyword = searchInput.value.trim();
+                const keyword = searchInput.value.trim();
                 if (!keyword) {
                     alert("검색어를 입력하세요!");
                     return;
@@ -207,50 +189,50 @@
 
                 ps.keywordSearch(keyword, function (data, status) {
                     if (status === kakao.maps.services.Status.OK) {
-                        searchResultsContainer.innerHTML = ''; // 기존 결과 지우기
-                        data.forEach(function (place) {
-                            var coords = new kakao.maps.LatLng(place.y, place.x);
-                            map.setCenter(coords);
-                            marker.setPosition(coords);
+                        data.forEach(place => {
+                            const coords = new kakao.maps.LatLng(place.y, place.x);
 
-                            // 검색 결과 항목 생성
-                            var resultItem = document.createElement('div');
-                            resultItem.className = 'result-item';
-                            resultItem.onclick = function () {
-                                map.setCenter(coords); // 클릭 시 해당 위치로 이동
-                            };
+                            const item = document.createElement('div');
+                            item.className = 'result-item';
 
-                            // 이미지 추가
-                            var img = document.createElement('img');
-                            img.src = place.photo ? place.photo[0].url : 'https://via.placeholder.com/250x150';
-                            resultItem.appendChild(img);
+                            const nameDiv = document.createElement('div');
+                            nameDiv.className = 'place-name';
+                            nameDiv.textContent = place.place_name;
 
-                            // 장소 이름과 주소 추가
-                            var placeName = document.createElement('div');
-                            placeName.className = 'place-name';
-                            placeName.textContent = place.place_name;
-                            resultItem.appendChild(placeName);
+                            const addrDiv = document.createElement('div');
+                            addrDiv.className = 'address';
+                            addrDiv.textContent = place.address_name;
 
-                            var address = document.createElement('div');
-                            address.className = 'address';
-                            address.textContent = place.address_name;
-                            resultItem.appendChild(address);
-
-                            // 별 버튼 추가 (북마크 추가)
-                            var starBtn = document.createElement('span');
+                            const starBtn = document.createElement('span');
                             starBtn.className = 'star-btn';
-                            starBtn.textContent = '★';
-                            starBtn.onclick = function (event) {
-                                event.stopPropagation();  // 클릭 이벤트 전파 방지
-                                if (!bookmarkedPlaces.includes(place)) {
-                                    bookmarkedPlaces.push(place);
-                                    updateBookmarkedList();
-                                }
-                            };
-                            resultItem.appendChild(starBtn);
+                            starBtn.innerHTML = '★';
 
-                            // 결과 항목을 목록에 추가
-                            searchResultsContainer.appendChild(resultItem);
+                            starBtn.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                if (!bookmarkedPlaces.includes(place.id)) {
+                                    bookmarkedPlaces.push(place.id);
+                                    const b = document.createElement('div');
+                                    b.className = 'bookmark-item';
+                                    b.textContent = place.place_name;
+                                    b.addEventListener('click', function () {
+                                        map.setCenter(coords);
+                                        marker.setPosition(coords);
+                                    });
+                                    bookmarkedList.appendChild(b);
+                                    starBtn.classList.add('starred');
+                                }
+                            });
+
+                            item.appendChild(starBtn);
+                            item.appendChild(nameDiv);
+                            item.appendChild(addrDiv);
+
+                            item.addEventListener('click', function () {
+                                map.setCenter(coords);
+                                marker.setPosition(coords);
+                            });
+
+                            searchResults.appendChild(item);
                         });
                     } else {
                         alert("검색 결과를 찾을 수 없습니다.");
@@ -258,22 +240,6 @@
                 });
             }
         });
-
-        // 북마크 목록 업데이트
-        function updateBookmarkedList() {
-            bookmarkedListContainer.innerHTML = '<h3>북마크</h3>'; // 제목 추가
-            bookmarkedPlaces.forEach(function (place) {
-                var bookmarkItem = document.createElement('div');
-                bookmarkItem.className = 'bookmark-item';
-                bookmarkItem.textContent = place.place_name;
-                bookmarkItem.onclick = function () {
-                    var coords = new kakao.maps.LatLng(place.y, place.x);
-                    map.setCenter(coords);  // 북마크 클릭 시 지도 이동
-                    marker.setPosition(coords);
-                };
-                bookmarkedListContainer.appendChild(bookmarkItem);
-            });
-        }
     </script>
 </body>
 </html>
