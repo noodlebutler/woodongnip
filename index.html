@@ -41,6 +41,9 @@
 
         body {
             background-color: #f0e1c6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #map {
@@ -70,12 +73,12 @@
             color: #4CAF50;
         }
 
-        /* 검색 결과 목록 디자인 */
         .search-results {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             margin-top: 30px;
+            width: 1000px;
         }
 
         .result-item {
@@ -115,34 +118,39 @@
                 color: #777;
             }
 
-            .result-item .btn {
-                display: inline-block;
-                margin-top: 10px;
-                padding: 8px 20px;
-                background-color: #7b4b2a;
-                color: #fff;
-                font-size: 14px;
-                border-radius: 20px;
-                text-decoration: none;
-            }
-
-                .result-item .btn:hover {
-                    background-color: #5d3d23;
-                }
-
-        /* X 버튼 스타일 */
-        .close-btn {
+        .star-btn {
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 18px;
-            color: #999;
+            font-size: 20px;
+            color: #FFD700;
             cursor: pointer;
-            transition: color 0.3s ease;
         }
 
-            .close-btn:hover {
-                color: #ff0000;
+            .star-btn:hover {
+                color: #FFA500;
+            }
+
+        .bookmarked-list {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .bookmark-item {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+            .bookmark-item:hover {
+                background-color: #f7f7f7;
             }
     </style>
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=4a3fa299815ea563798ea9063008da9f&libraries=services"></script>
@@ -158,6 +166,12 @@
     </div>
     <br /><br />
     <div id="map"></div>
+
+    <!-- 북마크 목록 -->
+    <div class="bookmarked-list" id="bookmarked-list">
+        <h3>북마크</h3>
+    </div>
+
     <div class="search-results" id="search-results"></div>
 
     <script>
@@ -180,6 +194,8 @@
         var ps = new kakao.maps.services.Places();
         var searchInput = document.getElementById('search-input');
         var searchResultsContainer = document.getElementById('search-results');
+        var bookmarkedListContainer = document.getElementById('bookmarked-list');
+        var bookmarkedPlaces = []; // 북마크된 장소들
 
         searchInput.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
@@ -204,9 +220,9 @@
                                 map.setCenter(coords); // 클릭 시 해당 위치로 이동
                             };
 
-                            // 이미지 추가 (null이나 undefined 처리)
+                            // 이미지 추가
                             var img = document.createElement('img');
-                            img.src = place.photo ? place.photo[0].url : 'https://via.placeholder.com/250x150'; // 이미지가 없으면 기본 이미지 사용
+                            img.src = place.photo ? place.photo[0].url : 'https://via.placeholder.com/250x150';
                             resultItem.appendChild(img);
 
                             // 장소 이름과 주소 추가
@@ -220,23 +236,18 @@
                             address.textContent = place.address_name;
                             resultItem.appendChild(address);
 
-                            // 버튼 추가 (예: 장소로 이동)
-                            var btn = document.createElement('a');
-                            btn.className = 'btn';
-                            btn.href = `https://map.kakao.com/link/to/${place.place_name},${place.y},${place.x}`;
-                            btn.target = '_blank';
-                            btn.textContent = '위치 보기';
-                            resultItem.appendChild(btn);
-
-                            // X 버튼 추가
-                            var closeBtn = document.createElement('span');
-                            closeBtn.className = 'close-btn';
-                            closeBtn.textContent = '×';
-                            closeBtn.onclick = function (event) {
+                            // 별 버튼 추가 (북마크 추가)
+                            var starBtn = document.createElement('span');
+                            starBtn.className = 'star-btn';
+                            starBtn.textContent = '★';
+                            starBtn.onclick = function (event) {
                                 event.stopPropagation();  // 클릭 이벤트 전파 방지
-                                searchResultsContainer.removeChild(resultItem); // 항목 제거
+                                if (!bookmarkedPlaces.includes(place)) {
+                                    bookmarkedPlaces.push(place);
+                                    updateBookmarkedList();
+                                }
                             };
-                            resultItem.appendChild(closeBtn);
+                            resultItem.appendChild(starBtn);
 
                             // 결과 항목을 목록에 추가
                             searchResultsContainer.appendChild(resultItem);
@@ -247,6 +258,22 @@
                 });
             }
         });
+
+        // 북마크 목록 업데이트
+        function updateBookmarkedList() {
+            bookmarkedListContainer.innerHTML = '<h3>북마크</h3>'; // 제목 추가
+            bookmarkedPlaces.forEach(function (place) {
+                var bookmarkItem = document.createElement('div');
+                bookmarkItem.className = 'bookmark-item';
+                bookmarkItem.textContent = place.place_name;
+                bookmarkItem.onclick = function () {
+                    var coords = new kakao.maps.LatLng(place.y, place.x);
+                    map.setCenter(coords);  // 북마크 클릭 시 지도 이동
+                    marker.setPosition(coords);
+                };
+                bookmarkedListContainer.appendChild(bookmarkItem);
+            });
+        }
     </script>
 </body>
 </html>
