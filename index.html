@@ -70,41 +70,42 @@
             color: #4CAF50;
         }
 
-        .search-result {
+        /* 검색 결과 목록 디자인 */
+        .search-results {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
             justify-content: center;
-            margin-top: 20px;
-            border-top: 2px solid #7b4b2a;
-            padding-top: 20px;
+            margin-top: 30px;
         }
 
         .result-item {
-            display: flex;
-            align-items: center;
+            width: 250px;
             margin: 10px;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 20px;
             background-color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            position: relative;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
         }
 
-            .result-item img {
-                width: 100px;
-                height: 100px;
-                border-radius: 8px;
-                margin-right: 15px;
+            .result-item:hover {
+                transform: scale(1.05);
+                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
             }
 
-            .result-item .info {
-                flex-grow: 1;
+            .result-item img {
+                width: 100%;
+                height: 150px;
+                object-fit: cover;
+                border-radius: 10px;
             }
 
             .result-item .place-name {
                 font-size: 18px;
                 font-weight: bold;
+                margin-top: 10px;
                 color: #333;
             }
 
@@ -113,11 +114,20 @@
                 color: #777;
             }
 
-            .result-item input[type="checkbox"] {
-                position: absolute;
-                left: -30px;
-                top: 10px;
+            .result-item .btn {
+                display: inline-block;
+                margin-top: 10px;
+                padding: 8px 20px;
+                background-color: #7b4b2a;
+                color: #fff;
+                font-size: 14px;
+                border-radius: 20px;
+                text-decoration: none;
             }
+
+                .result-item .btn:hover {
+                    background-color: #5d3d23;
+                }
     </style>
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=4a3fa299815ea563798ea9063008da9f&libraries=services"></script>
 </head>
@@ -132,7 +142,8 @@
     </div>
     <br /><br />
     <div id="map"></div>
-    <div class="search-result" id="search-result"></div>
+    <div class="search-results" id="search-results"></div>
+
     <script>
         var container = document.getElementById('map');
         var options = {
@@ -144,54 +155,15 @@
             position: map.getCenter(),
             map: map
         });
+
         kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
             var clickPosition = mouseEvent.latLng;
             marker.setPosition(clickPosition);
         });
+
         var ps = new kakao.maps.services.Places();
         var searchInput = document.getElementById('search-input');
-        var searchResult = document.getElementById('search-result');
-
-        var searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
-
-        function renderSearchHistory() {
-            searchResult.innerHTML = '';
-            searchHistory.forEach(function (item) {
-                var resultItem = document.createElement('div');
-                resultItem.className = 'result-item';
-                var placeImage = document.createElement('img');
-                placeImage.src = item.photo && item.photo[0] ? item.photo[0].url : 'https://via.placeholder.com/100';
-                resultItem.appendChild(placeImage);
-                var placeInfo = document.createElement('div');
-                placeInfo.className = 'info';
-                var placeName = document.createElement('div');
-                placeName.className = 'place-name';
-                placeName.textContent = item.place_name;
-                placeInfo.appendChild(placeName);
-                var placeAddress = document.createElement('div');
-                placeAddress.className = 'address';
-                placeAddress.textContent = item.address_name;
-                placeInfo.appendChild(placeAddress);
-                resultItem.appendChild(placeInfo);
-
-                var checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.addEventListener('change', function () {
-                    if (checkbox.checked) {
-                        searchHistory = searchHistory.filter(function (search) {
-                            return search.place_name !== item.place_name;
-                        });
-                        searchHistory.unshift(item);
-                        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-                        renderSearchHistory();
-                    }
-                });
-                resultItem.appendChild(checkbox);
-                searchResult.appendChild(resultItem);
-            });
-        }
-
-        renderSearchHistory();
+        var searchResultsContainer = document.getElementById('search-results');
 
         searchInput.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
@@ -200,25 +172,50 @@
                     alert("검색어를 입력하세요!");
                     return;
                 }
+
                 ps.keywordSearch(keyword, function (data, status) {
+                    console.log(status);  // 상태 코드 출력
                     if (status === kakao.maps.services.Status.OK) {
-                        var place = data[0];
-                        var coords = new kakao.maps.LatLng(place.y, place.x);
-                        map.setCenter(coords);
-                        marker.setPosition(coords);
-                        var searchItem = {
-                            place_name: place.place_name,
-                            address_name: place.address_name,
-                            photo: place.photo || []
-                        };
+                        searchResultsContainer.innerHTML = ''; // 기존 결과 지우기
+                        data.forEach(function (place) {
+                            var coords = new kakao.maps.LatLng(place.y, place.x);
+                            map.setCenter(coords);
+                            marker.setPosition(coords);
 
-                        searchHistory = searchHistory.filter(function (search) {
-                            return search.place_name !== place.place_name;
+                            // 검색 결과 항목 생성
+                            var resultItem = document.createElement('div');
+                            resultItem.className = 'result-item';
+                            resultItem.onclick = function () {
+                                map.setCenter(coords); // 클릭 시 해당 위치로 이동
+                            };
+
+                            // 이미지 추가 (null이나 undefined 처리)
+                            var img = document.createElement('img');
+                            img.src = place.photo ? place.photo[0].url : 'https://via.placeholder.com/250x150'; // 이미지가 없으면 기본 이미지 사용
+                            resultItem.appendChild(img);
+
+                            // 장소 이름과 주소 추가
+                            var placeName = document.createElement('div');
+                            placeName.className = 'place-name';
+                            placeName.textContent = place.place_name;
+                            resultItem.appendChild(placeName);
+
+                            var address = document.createElement('div');
+                            address.className = 'address';
+                            address.textContent = place.address_name;
+                            resultItem.appendChild(address);
+
+                            // 버튼 추가 (예: 장소로 이동)
+                            var btn = document.createElement('a');
+                            btn.className = 'btn';
+                            btn.href = `https://map.kakao.com/link/to/${place.place_name},${place.y},${place.x}`;
+                            btn.target = '_blank';
+                            btn.textContent = '위치 보기';
+                            resultItem.appendChild(btn);
+
+                            // 결과 항목을 목록에 추가
+                            searchResultsContainer.appendChild(resultItem);
                         });
-
-                        searchHistory.unshift(searchItem);
-                        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
-                        renderSearchHistory();
                     } else {
                         alert("검색 결과를 찾을 수 없습니다.");
                     }
