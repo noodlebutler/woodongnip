@@ -72,6 +72,7 @@
 
         .search-result {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             margin-top: 20px;
             border-top: 2px solid #7b4b2a;
@@ -87,6 +88,7 @@
             background-color: #fff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             width: 400px;
+            position: relative;
         }
 
             .result-item img {
@@ -109,6 +111,12 @@
             .result-item .address {
                 font-size: 14px;
                 color: #777;
+            }
+
+            .result-item input[type="checkbox"] {
+                position: absolute;
+                left: -30px;
+                top: 10px;
             }
     </style>
     <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=4a3fa299815ea563798ea9063008da9f&libraries=services"></script>
@@ -143,6 +151,48 @@
         var ps = new kakao.maps.services.Places();
         var searchInput = document.getElementById('search-input');
         var searchResult = document.getElementById('search-result');
+
+        var searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+
+        function renderSearchHistory() {
+            searchResult.innerHTML = '';
+            searchHistory.forEach(function (item) {
+                var resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                var placeImage = document.createElement('img');
+                placeImage.src = item.photo && item.photo[0] ? item.photo[0].url : 'https://via.placeholder.com/100';
+                resultItem.appendChild(placeImage);
+                var placeInfo = document.createElement('div');
+                placeInfo.className = 'info';
+                var placeName = document.createElement('div');
+                placeName.className = 'place-name';
+                placeName.textContent = item.place_name;
+                placeInfo.appendChild(placeName);
+                var placeAddress = document.createElement('div');
+                placeAddress.className = 'address';
+                placeAddress.textContent = item.address_name;
+                placeInfo.appendChild(placeAddress);
+                resultItem.appendChild(placeInfo);
+
+                var checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.addEventListener('change', function () {
+                    if (checkbox.checked) {
+                        searchHistory = searchHistory.filter(function (search) {
+                            return search.place_name !== item.place_name;
+                        });
+                        searchHistory.unshift(item);
+                        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                        renderSearchHistory();
+                    }
+                });
+                resultItem.appendChild(checkbox);
+                searchResult.appendChild(resultItem);
+            });
+        }
+
+        renderSearchHistory();
+
         searchInput.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 var keyword = searchInput.value.trim();
@@ -151,29 +201,24 @@
                     return;
                 }
                 ps.keywordSearch(keyword, function (data, status) {
-                    searchResult.innerHTML = '';
                     if (status === kakao.maps.services.Status.OK) {
                         var place = data[0];
                         var coords = new kakao.maps.LatLng(place.y, place.x);
                         map.setCenter(coords);
                         marker.setPosition(coords);
-                        var resultItem = document.createElement('div');
-                        resultItem.className = 'result-item';
-                        var placeImage = document.createElement('img');
-                        placeImage.src = place.photo && place.photo[0] ? place.photo[0].url : 'https://via.placeholder.com/100';
-                        resultItem.appendChild(placeImage);
-                        var placeInfo = document.createElement('div');
-                        placeInfo.className = 'info';
-                        var placeName = document.createElement('div');
-                        placeName.className = 'place-name';
-                        placeName.textContent = place.place_name;
-                        placeInfo.appendChild(placeName);
-                        var placeAddress = document.createElement('div');
-                        placeAddress.className = 'address';
-                        placeAddress.textContent = place.address_name;
-                        placeInfo.appendChild(placeAddress);
-                        resultItem.appendChild(placeInfo);
-                        searchResult.appendChild(resultItem);
+                        var searchItem = {
+                            place_name: place.place_name,
+                            address_name: place.address_name,
+                            photo: place.photo || []
+                        };
+
+                        searchHistory = searchHistory.filter(function (search) {
+                            return search.place_name !== place.place_name;
+                        });
+
+                        searchHistory.unshift(searchItem);
+                        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                        renderSearchHistory();
                     } else {
                         alert("검색 결과를 찾을 수 없습니다.");
                     }
