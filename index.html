@@ -160,7 +160,7 @@
                         var resultItem = document.createElement('div');
                         resultItem.className = 'result-item';
                         var placeImage = document.createElement('img');
-                        placeImage.src = place.photo ? place.photo[0].url : 'https://via.placeholder.com/100';
+                        placeImage.src = place.photo && place.photo[0] ? place.photo[0].url : 'https://via.placeholder.com/100';
                         resultItem.appendChild(placeImage);
                         var placeInfo = document.createElement('div');
                         placeInfo.className = 'info';
