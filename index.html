@@ -180,66 +180,87 @@
         const ps = new kakao.maps.services.Places();
 
         searchInput.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                const keyword = searchInput.value.trim();
-                if (!keyword) {
-                    alert("검색어를 입력하세요!");
-                    return;
-                }
+    if (event.key === 'Enter') {
+        const keyword = searchInput.value.trim();
+        if (!keyword) {
+            alert("검색어를 입력하세요!");
+            return;
+        }
 
-                ps.keywordSearch(keyword, function (data, status) {
-                    if (status === kakao.maps.services.Status.OK) {
-                        data.forEach(place => {
-                            const coords = new kakao.maps.LatLng(place.y, place.x);
+        searchResults.innerHTML = '';
 
-                            const item = document.createElement('div');
-                            item.className = 'result-item';
+        ps.keywordSearch(keyword, function (data, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                data.forEach(place => {
+                    const coords = new kakao.maps.LatLng(place.y, place.x);
 
-                            const nameDiv = document.createElement('div');
-                            nameDiv.className = 'place-name';
-                            nameDiv.textContent = place.place_name;
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
 
-                            const addrDiv = document.createElement('div');
-                            addrDiv.className = 'address';
-                            addrDiv.textContent = place.address_name;
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'place-name';
+                    nameDiv.textContent = place.place_name;
 
-                            const starBtn = document.createElement('span');
-                            starBtn.className = 'star-btn';
-                            starBtn.innerHTML = '★';
+                    const addrDiv = document.createElement('div');
+                    addrDiv.className = 'address';
+                    addrDiv.textContent = place.address_name;
 
-                            starBtn.addEventListener('click', function (e) {
+                    const starBtn = document.createElement('span');
+                    starBtn.className = 'star-btn';
+                    starBtn.innerHTML = '★';
+
+                    starBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        if (!bookmarkedPlaces.includes(place.id)) {
+                            bookmarkedPlaces.push(place.id);
+
+                            const b = document.createElement('div');
+                            b.className = 'bookmark-item';
+                            b.textContent = place.place_name;
+
+                            const removeBtn = document.createElement('span');
+                            removeBtn.textContent = ' ❌';
+                            removeBtn.style.color = '#888';
+                            removeBtn.style.cursor = 'pointer';
+                            removeBtn.style.float = 'right';
+
+                            removeBtn.addEventListener('click', function (e) {
                                 e.stopPropagation();
-                                if (!bookmarkedPlaces.includes(place.id)) {
-                                    bookmarkedPlaces.push(place.id);
-                                    const b = document.createElement('div');
-                                    b.className = 'bookmark-item';
-                                    b.textContent = place.place_name;
-                                    b.addEventListener('click', function () {
-                                        map.setCenter(coords);
-                                        marker.setPosition(coords);
-                                    });
-                                    bookmarkedList.appendChild(b);
-                                    starBtn.classList.add('starred');
-                                }
+                                bookmarkedList.removeChild(b);
+                                const index = bookmarkedPlaces.indexOf(place.id);
+                                if (index > -1) bookmarkedPlaces.splice(index, 1);
+                                starBtn.classList.remove('starred');
                             });
 
-                            item.appendChild(starBtn);
-                            item.appendChild(nameDiv);
-                            item.appendChild(addrDiv);
+                            b.appendChild(removeBtn);
 
-                            item.addEventListener('click', function () {
+                            b.addEventListener('click', function () {
                                 map.setCenter(coords);
                                 marker.setPosition(coords);
                             });
 
-                            searchResults.appendChild(item);
-                        });
-                    } else {
-                        alert("검색 결과를 찾을 수 없습니다.");
-                    }
+                            bookmarkedList.appendChild(b);
+                            starBtn.classList.add('starred');
+                        }
+                    });
+
+                    item.appendChild(starBtn);
+                    item.appendChild(nameDiv);
+                    item.appendChild(addrDiv);
+
+                    item.addEventListener('click', function () {
+                        map.setCenter(coords);
+                        marker.setPosition(coords);
+                    });
+
+                    searchResults.appendChild(item);
                 });
+            } else {
+                alert("검색 결과를 찾을 수 없습니다.");
             }
         });
+    }
+});
     </script>
 </body>
 </html>
