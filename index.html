@@ -205,6 +205,14 @@
                     addrDiv.className = 'address';
                     addrDiv.textContent = place.address_name;
 
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category';
+                    categoryDiv.textContent = `카테고리: ${place.category_name}`;
+
+                    const phoneDiv = document.createElement('div');
+                    phoneDiv.className = 'phone';
+                    phoneDiv.textContent = place.phone ? `전화번호: ${place.phone}` : '전화번호 없음';
+
                     const starBtn = document.createElement('span');
                     starBtn.className = 'star-btn';
                     starBtn.innerHTML = '★';
@@ -247,6 +255,8 @@
                     item.appendChild(starBtn);
                     item.appendChild(nameDiv);
                     item.appendChild(addrDiv);
+                    item.appendChild(categoryDiv);
+                    item.appendChild(phoneDiv);
 
                     item.addEventListener('click', function () {
                         map.setCenter(coords);
